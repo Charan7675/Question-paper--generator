@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Assessment Test Paper</title>
+    <style>
+        .container{
+            display: flex;
+            justify-content: space-between;
+        }
+        h3{
+            text-align: center;
+        }
+        .left, .right {
+            float: left;
+        }
+        
+        table, th, td {
+            border: 2px solid black;
+            border-collapse: collapse;
+            position: relative;
+        }
+        th, td {
+            padding: 8px;
+        }
+        .table{
+            display: flex;
+            justify-content: center;
+        }
+        .faculty{
+            display: flex;
+            justify-content: space-between;
+        }
+        img{
+            height: 200px;
+            width: 100%;
+            align-items: center;
+        }
+        .border{
+            border: 30px solid #0000;
+        }
+        .download-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .info-item {
+            margin: 10px 0;
+        }
+        .info-label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .info-value {
+            display: inline;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .or-separator {
+            text-align: center;
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <img src="vit_3.jpg">
+    <hr>
+    <h3>Internal assessment test-3</h3>
+    <hr>
+    <div class="container">
+        <div class="left">
+            <div class="info-item">
+                <span class="info-label">SEM/SEC:</span>
+                <span id="semSec" class="info-value"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">SUBJECT:</span>
+                <span id="subject" class="info-value"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">FACULTY:</span>
+                <span id="faculty" class="info-value"></span>
+            </div>
+        </div>
+        <div class="right">
+            <div class="info-item">
+                <span class="info-label">DATE:</span>
+                <span id="date" class="info-value"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">TIME:</span>
+                <span id="time" class="info-value"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Max. Marks:</span>
+                <span id="maxMarks" class="info-value"></span>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <h3>Note:Answer 2 full questions</h3>
+    <div class="table">
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Q.NO</th>
+                    <th rowspan="10">QUESTION</th>
+                    <th>MARKS</th>
+                    <th>CO'S</th>
+                    <th>CL</th>
+                </tr>
+            </thead>
+            <tbody id="questionsTableBody">
+                <!-- Questions will be dynamically populated here -->
+            </tbody>
+        </table>
+    </div>
+    <div class="faculty">
+        <div class="info-item">
+            <span class="info-label">FACULTY:</span>
+            <span id="facultyName" class="info-value"></span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">HOD:</span>
+            <span id="hodName" class="info-value"></span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">PRINCIPAL:</span>
+            <span id="principalName" class="info-value"></span>
+        </div>
+    </div>
+
+    <!-- Button to download as PDF -->
+    <div class="download-button">
+        <button onclick="downloadPDF()">Download PDF</button>
+        <button onclick="downloadWord()">Download as Word</button>
+
+    </div>
+<div class="table">
+    <table>
+        <tbody id="questionsTableBody">
+            <!-- Questions will be dynamically populated here -->
+        </tbody>
+    </table>
+</div>
+
+    <script>
+    function splitAttribute(attribute) {
+    // If attribute is empty or not a number, return original
+    if (!attribute || isNaN(attribute)) {
+        return { a: attribute, b: attribute };
+    }
+
+    // Convert to number
+    const numAttribute = parseFloat(attribute);
+    
+
+    // Custom mark splitting logic
+    if ((numAttribute === 50)||(numAttribute === 100)) {
+        
+        // Split marks: Q1-Q2 gets 10 marks each
+        return { 
+            a: "10", 
+            b: "10"
+        };
+    } else if (numAttribute === 25) {
+        // Split marks: Q1 gets 10 marks, Q2 gets 5 marks
+        return { 
+            a: "6", 
+            b: "7"
+        };
+    } else {
+        // Default previous logic: split marks roughly in half
+        const aMarks = Math.floor(numAttribute / 2);
+        const bMarks = numAttribute - aMarks;
+
+        return { 
+            a: aMarks.toString(), 
+            b: bMarks.toString() 
+        };
+    }
+}
+
+function splitCourseAndLevel(attribute) {
+    // If attribute contains '+', split at '+'
+    if (attribute && attribute.includes('+')) {
+        const parts = attribute.split('+').map(part => part.trim());
+        return parts.length > 1 
+            ? { a: parts[0], b: parts[1] }
+            : { a: parts[0], b: parts[0] };
+    }
+
+    // Otherwise, return the original attribute for both
+    return { a: attribute, b: attribute };
+}
+
+function populateTable() {
+    const questionsText = localStorage.getItem('generatedQuestions');
+    if (!questionsText) return;
+
+    const questions = JSON.parse(questionsText);
+    const tbody = document.getElementById('questionsTableBody');
+    tbody.innerHTML = ''; // Clear existing content
+
+    // Determine which questions go in (a) and (b)
+    const questionsA = questions.filter((_, index) => index % 2 === 0);
+    const questionsB = questions.filter((_, index) => index % 2 === 1);
+
+    // Ensure we have enough questions for both a and b
+    const maxQuestions = Math.max(questionsA.length, questionsB.length);
+
+    for (let i = 0; i < maxQuestions; i++) {
+        const questionA = questionsA[i] || { questionText: '', marks: '', course: '', bloomLevel: '' };
+        const questionB = questionsB[i] || { questionText: '', marks: '', course: '', bloomLevel: '' };
+
+        // Split the question text into parts
+        const partsA = questionA.questionText.split('(b)');
+        const partsB = questionB.questionText.split('(b)');
+        
+        const partA = partsA[0] ? partsA[0].replace('(a)', '').trim() : '';
+        const partB = partsB[0] ? partsB[0].replace('(a)', '').trim() : '';
+
+        // Modify mark splitting for specific scenarios
+        const splitMarks = splitAttribute(
+            localStorage.getItem('maxMarks') || questionA.marks
+        );
+        
+        const splitCourse = splitCourseAndLevel(questionA.course);
+        const splitBloomLevel = splitCourseAndLevel(questionA.bloomLevel);
+
+        // Create row with question A in (a)
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td rowspan="2">${i + 1}</td>
+            <td>a</td>
+            <td>${partA}</td>
+            <td>${splitMarks.a}</td>
+            <td>${splitCourse.a}</td>
+            <td>${splitBloomLevel.a}</td>
+        `;
+        tbody.appendChild(row);
+
+        // Create second row with question B in (b)
+        const rowB = document.createElement('tr');
+        rowB.innerHTML = `
+            <td>b</td>
+            <td>${partB}</td>
+            <td>${splitMarks.b}</td>
+            <td>${splitCourse.b}</td>
+            <td>${splitBloomLevel.b}</td>
+        `;
+        tbody.appendChild(rowB);
+
+        // Add OR separator row with specific conditions
+        // OR between questions 1 and 2, and between 3 and 4
+        if ((i%2 === 0)) {
+            const orRow = document.createElement('tr');
+            orRow.innerHTML = '<td colspan="6" class="or-separator">OR</td>';
+            tbody.appendChild(orRow);
+        }
+        if ((i%2 === 1) ) { 
+            const orRow = document.createElement('tr');
+            orRow.innerHTML = '<td colspan="6" style="height: 20px;"></td>';
+            tbody.appendChild(orRow);
+        }
+    }
+}
+
+// Rest of the script remains the same
+
+    // Call populateTable() on page load
+    window.onload = function() {
+        // Populate form fields from localStorage
+        document.getElementById('semSec').textContent = localStorage.getItem('semSec') || 'N/A';
+        document.getElementById('subject').textContent = localStorage.getItem('subject') || 'N/A';
+        document.getElementById('faculty').textContent = localStorage.getItem('faculty') || 'N/A';
+        document.getElementById('date').textContent = localStorage.getItem('date') || 'N/A';
+        document.getElementById('time').textContent = localStorage.getItem('time') || 'N/A';
+        document.getElementById('maxMarks').textContent = localStorage.getItem('maxMarks') || 'N/A';
+        document.getElementById('facultyName').textContent = localStorage.getItem('facultyName') || 'N/A';
+        document.getElementById('hodName').textContent = localStorage.getItem('hodName') || 'N/A';
+        document.getElementById('principalName').textContent = localStorage.getItem('principalName') || 'N/A';
+
+        // Populate table with questions
+        populateTable();
+    }
+
+    function downloadPDF() {
+        const element = document.body;
+        const opt = {
+            margin: 10,
+            filename: 'question-paper.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+    }
+    function downloadWord() {
+            // Get the HTML content
+            const content = document.querySelector('#qp').innerHTML;
+            const blob = htmlDocx.asBlob(content);
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'document.docx';
+            link.click();
+        }
+
+    
+    </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!-- generator.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Paper Generator - AQGS</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.0.7/pizzip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.23.5/docxtemplater.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 1rem;
+            margin: -20px -20px 20px -20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 2rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+        }
+
+        nav a:hover {
+            background-color: #34495e;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-top: 20px;
+        }
+
+        .logo {
+            max-width: 150px;
+            margin-bottom: 1rem;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .info-box input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .generate-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6; 
+			border-radius :5 px; 
+			padding :15 px; 
+		}
+
+		.faculty-info { 
+			display:flex ; 
+			justify-content :space-between ; 
+			margin-top :30 px ; 
+			flex-wrap :wrap ; 
+			gap :20 px ; 
+		}
+
+		.faculty-box { 
+			background-color:#f8f9fa ; 
+			border :1 px solid #dee2e6 ; 
+			border-radius :5 px ; 
+			padding :15 px ; 
+			flex :1; 
+			min-width :250 px; 
+		}
+
+		#loading { 
+			text-align:center; 
+			margin :20 px 0; 
+			display:none; 
+		}
+        .questions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .questions-table th, .questions-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .questions-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .questions-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="#" class="active">QP Generator</a>
+        <a href="login.php">Login</a>
+    </nav>
+
+    <div class="header">
+        <img src="https://www.webdesignerforum.co.uk/uploads/monthly_2018_08/large.VemanaLogo.png.81a8bb22ffa6d52401a7685cb9846bd0.png" alt="College Logo" class="logo">
+        <h1>Internal Assessment Generator</h1>
+    </div>
+
+    <div class="container">
+       <div class="info-box">
+           <input type="text" id="semSec" placeholder="SEM/SEC" required>
+           <input type="text" id="subject" placeholder="SUBJECT" required>
+           <input type="text" id="faculty" placeholder="FACULTY" required>
+       </div>
+       <div class="info-box">
+           <input type="date" id="date" required>
+           <input type="time" id="time" required>
+           <input type="number" id="maxMarks" placeholder="Max. Marks" required>
+       </div>
+   </div>
+
+   <div class="generate-section">
+       <input type="file" id="imageInput" accept="image/*">
+       <button id="generateBtn" onclick="generateQuestions()" disabled>Generate Questions</button>
+   </div>
+
+   <div id="questionsContainer" class="section"></div>
+
+   <div class="faculty-info">
+       <div class="faculty-box">
+           <p><strong>FACULTY</strong></p>
+           <input type="text" id="facultyName" placeholder="Enter faculty name">
+       </div>
+       <div class="faculty-box">
+           <p><strong>HOD</strong></p>
+           <input type="text" id="hodName" placeholder="Enter HOD name">
+       </div>
+       <div class="faculty-box">
+           <p><strong>PRINCIPAL</strong></p>
+           <input type="text" id="principalName" placeholder="Enter principal name">
+       </div>
+   </div>
+
+   <div id="loading">Generating questions... Please wait.</div>
+
+   <script>
+    document.getElementById('imageInput').addEventListener('change', function() {
+        document.getElementById('generateBtn').disabled = !this.files.length;
+    });
+
+    async function generateQuestions() {
+        const formData = new FormData();
+        // Get all form values
+        const formValues = {
+            semSec: document.getElementById('semSec').value,
+            subject: document.getElementById('subject').value,
+            faculty: document.getElementById('faculty').value,
+            date: document.getElementById('date').value,
+            time: document.getElementById('time').value,
+            maxMarks: document.getElementById('maxMarks').value,
+            facultyName: document.getElementById('facultyName').value,
+            hodName: document.getElementById('hodName').value,
+            principalName: document.getElementById('principalName').value
+        };
+
+        // Store form values in localStorage
+        Object.keys(formValues).forEach(key => {
+            localStorage.setItem(key, formValues[key]);
+            formData.append(key, formValues[key]);
+        });
+
+        const imageInput = document.getElementById('imageInput');
+        const file = imageInput.files[0];
+        
+        if (!file) {
+            alert("Please upload an image.");
+            return;
+        }
+        
+        formData.append('image', file);
+        document.getElementById('loading').style.display = 'block';
+
+        try {
+            const response = await fetch('http://localhost:3000/generate-questions', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Store questions in localStorage
+            localStorage.setItem('generatedQuestions', JSON.stringify(data.questions));
+            
+            // Redirect to input-details.html
+            window.location.href = 'input-details.html';
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to generate questions. Please try again.');
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
